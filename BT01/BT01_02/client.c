@@ -8,7 +8,7 @@
 #include <netdb.h>
 
 #define IP "127.0.0.1"
-#define PORT 8005
+#define PORT 9090
 #define FILE_NAME "SOICT.txt"
 #define BUFFER_SIZE 20
 
