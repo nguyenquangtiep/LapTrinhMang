@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    int n = sendto(server_sockfd, filename, sizeof(filename), 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
+    int n = sendto(server_sockfd, argv[3], sizeof(argv[3]), 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
     if (n < 0) {
         perror("[ERROR] Sending file name failed.\n");
         return 1;

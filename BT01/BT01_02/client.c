@@ -44,6 +44,7 @@ int main() {
             perror("[ERROR] Send() failed.\n");
             return 1;
         }
+        printf("[SENDING] Data: %s\n", buffer);
     }
 
     printf("File data sent succesfully.\n");

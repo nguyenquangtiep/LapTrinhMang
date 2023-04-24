@@ -58,6 +58,8 @@ int main() {
             break;
         }
 
+        printf("[RECEIVING] Data: %s\n", buffer);
+
         memcpy(cur_buf, buffer, 9);
         cur_buf[9] = '\0';
 

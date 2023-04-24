@@ -43,8 +43,8 @@ int main(int argc, char *argv[]) {
         perror("[ERROR] Receiving file name failed.\n");
         return 1;
     }
-    printf("[SUCCESS] Received file name.\n");
-
+    printf("[SUCCESS] Received file name: %s\n", buffer);
+    
     char *filename = buffer;
 
     FILE *file = fopen(filename, "w");
@@ -52,16 +52,16 @@ int main(int argc, char *argv[]) {
         perror("[ERROR] Opening file failed.\n");
         return 1;
     }
-    printf("[SUCCESS] Opened file.\n");
+    printf("[SUCCESS] File opened.\n");
     
     while (1) {
+        memset(buffer, 0, BUFFER_SIZE);
         n = recvfrom(server_sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr*)&client_addr, &addr_size);
         if (strcmp(buffer, "END") == 0) {
             break;
         }
         printf("[RECEIVING] Data: %s\n", buffer);
         fprintf(file, "%s", buffer);
-        memset(buffer, 0, BUFFER_SIZE);
     }
 
     printf("[SUCCESS] Data transfer complete.\n");
