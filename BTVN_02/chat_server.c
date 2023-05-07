@@ -8,7 +8,7 @@
 #include <string.h>
 #include <time.h>
 
-#define PORT 9000
+#define PORT 9090
 #define BUFFER_SIZE 1024
 #define MAX_CLIENTS 64
 
@@ -19,6 +19,110 @@ void deleteElement(int clients[], char clients_name[][BUFFER_SIZE], int n, int *
     }
     *num_clients = *num_clients - 1;
     clients[*num_clients] = 0;
+}
+
+char* getTime() {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    char *c;
+    char tmp[20];
+    sprintf(c, "%d/", tm.tm_year + 1900);
+    if (tm.tm_mon + 1 < 10) {
+        if (tm.tm_mday < 10) {
+            sprintf(tmp, "0%d/0%d ", tm.tm_mon + 1, tm.tm_mday);
+        }
+        else {
+            sprintf(tmp, "0%d/%d ", tm.tm_mon + 1, tm.tm_mday);
+        }
+    }
+    else {
+        if (tm.tm_mday < 10) {
+            sprintf(tmp, "%d/0%d ", tm.tm_mon + 1, tm.tm_mday);
+        }
+        else {
+            sprintf(tmp, "%d/%d ", tm.tm_mon + 1, tm.tm_mday);
+        }
+    }
+    strcat(c, tmp);
+    memset(tmp, 0, sizeof(tmp));
+    if (tm.tm_hour > 12) {
+        if (tm.tm_hour - 12 < 10) {
+            if (tm.tm_min < 10) {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "0%d:0%d:0%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "0%d:0%d:%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+            }
+            else {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "0%d:%d:0%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "0%d:%d:%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+            }
+        }
+        else {
+            if (tm.tm_min < 10) {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "%d:0%d:0%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "%d:0%d:%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+            }
+            else {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "%d:%d:0%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "%d:%d:%dPM", tm.tm_hour - 12, tm.tm_min, tm.tm_sec);
+                }
+            }
+        }
+    }
+    else {
+        if (tm.tm_hour < 10) {
+            if (tm.tm_min < 10) {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "0%d:0%d:0%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "0%d:0%d:%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+            }
+            else {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "0%d:%d:0%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "0%d:%d:%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+            }
+        }
+        else {
+            if (tm.tm_min < 10) {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "%d:0%d:0%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "%d:0%d:%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+            }
+            else {
+                if (tm.tm_sec < 10) {
+                    sprintf(tmp, "%d:%d:0%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+                else {
+                    sprintf(tmp, "%d:%d:%dAM", tm.tm_hour, tm.tm_min, tm.tm_sec);
+                }
+            }
+        }
+    }
+    strcat(c, tmp);
+    return c;
 }
 
 int main() 
@@ -73,6 +177,7 @@ int main()
             if (num_clients == sizeof(clients)/sizeof(int)) {
                 printf("%s", err_full);
                 send(client, err_full, sizeof(err_full), 0);
+                close(client);
             }
             else {
                 clients[num_clients++] = client;
@@ -97,16 +202,9 @@ int main()
                 time_t t = time(NULL);
                 struct tm tm = *localtime(&t);
 
-                printf("Received from %d: %s\n", clients[i], buf);
+                char *time = getTime();
 
-                // if (tm.tm_hour - 12 >= 0) {
-                //     printf("%d/%d/%d %d:%d:%dPM %s: %s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-                //     tm.tm_hour - 12, tm.tm_min, tm.tm_sec, clients_name[i], buf);
-                // }
-                // else {
-                //     printf("%d/%d/%d %d:%d:%dAM %s: %s", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-                //     tm.tm_hour, tm.tm_min, tm.tm_sec, clients_name[i], buf);
-                // }
+                printf("Received from %d: %s\n", clients[i], buf);
 
                 char tmp[ret];
                 char client_name[strlen(clients_name[i])];
@@ -115,7 +213,7 @@ int main()
                 strcpy(client_name, clients_name[i]);
 
                 memset(buf, 0, BUFFER_SIZE);
-                sprintf(buf, "%s: %s", client_name, tmp);
+                sprintf(buf, "%s %s: %s", time, client_name, tmp);
 
                 for (int j = 0; j < num_clients; j++) {
                     if (i != j && strlen(clients_name[j]) != 0) {
