@@ -9,6 +9,8 @@
 #include <poll.h>
 
 #define MAX_CLIENTS 64
+#define BUFFER_SIZE 256
+#define PORT 7770
 
 int main() 
 {
@@ -22,7 +24,7 @@ int main()
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_port = htons(9009);
+    addr.sin_port = htons(PORT);
 
     if (bind(listener, (struct sockaddr *)&addr, sizeof(addr))) 
     {
@@ -37,7 +39,7 @@ int main()
     }
 
     struct pollfd fds[MAX_CLIENTS];
-    char *user_ids[MAX_CLIENTS];
+    char user_ids[MAX_CLIENTS][BUFFER_SIZE];
     int num_clients = 0;
     int nfds = 1;
 
@@ -80,6 +82,8 @@ int main()
                 ret = recv(fds[i].fd, buf, sizeof(buf), 0);
                 if (ret <= 0)
                 {
+                    char tmp[512];
+                    sprintf(tmp, "Client \"%s\" disconnected.\n", user_ids[i-1]);
                     printf("Client %d disconnected.\n", fds[i].fd);
                     close(fds[i].fd);
                     
@@ -87,11 +91,18 @@ int main()
                     if (i < nfds - 1)
                     {
                         fds[i] = fds[nfds - 1];
-                        user_ids[i-1] = user_ids[num_clients - 1];
+                        strcpy(user_ids[i-1], user_ids[num_clients - 1]);
                     }
                     nfds--;
                     num_clients--;
                     i--;
+                    for (int j = 1; j < nfds; j++)
+                    {
+                        if (strlen(user_ids[j-1]) != 0)
+                        {
+                            send(fds[j].fd, tmp, strlen(tmp), 0);
+                        }
+                    }
                 }
                 else
                 {
@@ -100,7 +111,7 @@ int main()
                     printf("Received from %d: %s\n", fds[i].fd, buf);
 
 
-                    if (user_ids[i-1] == NULL)
+                    if (strlen(user_ids[i-1]) == 0)
                     {
                         // Xu ly cu phap yeu cau dang nhap
                         char cmd[32], id[32], tmp[32];
@@ -109,9 +120,6 @@ int main()
                         {
                             if (strcmp(cmd, "client_id:") == 0)
                             {
-                                char *msg = "Dung cu phap. Gui tin nhan.\n";
-                                send(client, msg, strlen(msg), 0);
-
                                 int k = 0;
                                 for (; k < num_clients; k++)
                                     if (strcmp(user_ids[k], id) == 0)
@@ -124,9 +132,21 @@ int main()
                                 }
                                 else
                                 {
-                                    user_ids[num_clients] = malloc(strlen(id) + 1);
+                                    char *msg = "Dung cu phap. Gui tin nhan.\n";
+                                    send(client, msg, strlen(msg), 0);
+                                    // user_ids[num_clients] = malloc(strlen(id) + 1);
                                     strcpy(user_ids[num_clients], id);
                                     num_clients++;
+
+                                    char tmp[512];
+                                    sprintf(tmp, "Client \"%s\" connected.\n", user_ids[i-1]);
+                                    for (int j = 1; j < nfds; j++)
+                                    {
+                                        if (j != i && strlen(user_ids[j-1]) != 0)
+                                        {
+                                            send(fds[j].fd, tmp, strlen(tmp), 0);
+                                        }
+                                    }
                                 }                                    
                             }
                             else
@@ -139,6 +159,18 @@ int main()
                         {
                             char *msg = "Nhap sai. Yeu cau nhap lai.\n";
                             send(client, msg, strlen(msg), 0);
+                        }
+                    }
+                    else
+                    {
+                        char tmp[1024];
+                        sprintf(tmp, "%s: %s", user_ids[i-1], buf);
+                        for (int j = 1; j < nfds; j++)
+                        {
+                            if (i != j && strlen(user_ids[j-1]) != 0)
+                            {
+                                send(fds[j].fd, tmp, strlen(tmp), 0);
+                            }
                         }
                     }
                 }
