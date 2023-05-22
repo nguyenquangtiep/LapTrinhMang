@@ -55,7 +55,7 @@ int main() {
     fds[0].fd = listener;
     fds[0].events = POLLIN;
 
-    FILE *file = fopen(FILE_INPUT, "r");;
+    
 
     while (1)
     {
@@ -119,6 +119,7 @@ int main() {
                     if (user[i] == 0)
                     {
                         int check = 0;
+                        FILE *file = fopen(FILE_INPUT, "r");
                         while (fgets(buf2, BUFFER_SIZE, file) != NULL)
                         {
                             buf2[strlen(buf2) - 1] = 0;
@@ -129,6 +130,7 @@ int main() {
                             }
                             memset(buf2, 0, BUFFER_SIZE);
                         }
+                        fclose(file);
 
                         // Xu ly dang nhap
                         if (check)
@@ -171,7 +173,6 @@ int main() {
         }
     }
 
-    fclose(file);
     close(listener);
 
     return 0;

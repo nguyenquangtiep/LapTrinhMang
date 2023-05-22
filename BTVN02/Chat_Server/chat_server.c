@@ -121,11 +121,11 @@ int main()
                             if (strcmp(cmd, "client_id:") == 0)
                             {
                                 int k = 0;
-                                for (; k < num_clients; k++)
-                                    if (strcmp(user_ids[k], id) == 0)
+                                for (; k < nfds - 1; k++)
+                                    if (strlen(user_ids[k]) != 0 && strcmp(user_ids[k], id) == 0)
                                         break;
                                 
-                                if (k < num_clients)
+                                if (k < nfds - 1)
                                 {
                                     char *msg = "ID da ton tai. Yeu cau nhap lai.\n";
                                     send(client, msg, strlen(msg), 0);
@@ -135,7 +135,7 @@ int main()
                                     char *msg = "Dung cu phap. Gui tin nhan.\n";
                                     send(client, msg, strlen(msg), 0);
                                     // user_ids[num_clients] = malloc(strlen(id) + 1);
-                                    strcpy(user_ids[num_clients], id);
+                                    strcpy(user_ids[i-1], id);
                                     num_clients++;
 
                                     char tmp[512];
@@ -167,7 +167,7 @@ int main()
                         sprintf(tmp, "%s: %s", user_ids[i-1], buf);
                         for (int j = 1; j < nfds; j++)
                         {
-                            if (i != j && strlen(user_ids[j-1]) != 0)
+                            if (strlen(user_ids[j-1]) != 0)
                             {
                                 send(fds[j].fd, tmp, strlen(tmp), 0);
                             }
