@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <string.h>
+#include <time.h>
 
 #define PORT 9090
 #define BUFFER_SIZE 1024
@@ -80,11 +81,51 @@ int main()
 
 void process_request(int client, char *buf)
 {
-    char format[10], tmp[10];
+    
+    char format[12], tmp[12];
     int ret = sscanf(buf, "GET_TIME %s%s", format, tmp);
     if (ret == 1)
     {
         printf("Format: %s\n", format);
+        if (strcmp(format, "[dd/mm/yyyy]") != 0 && strcmp(format, "[dd/mm/yy]") != 0 && strcmp(format, "[mm/dd/yyyy]") != 0 && strcmp(format, "[mm/dd/yy]") != 0)
+        {
+            char *msg = "Nhap sai cu phap. Hay nhap lai.\n";
+            send(client, msg, strlen(msg), 0);
+        }
+        else
+        {
+            printf("Dang xu ly///\n");
+            memset(tmp, 0, sizeof(tmp));
+            time_t t;
+            time(&t);
+            struct tm *tm;
+            tm = localtime(&t);
+            if (strcmp(format, "[dd/mm/yyyy]") == 0)
+            {
+                printf("Dinh dang: %s\n", format);
+                strftime(tmp, sizeof(tmp), "%d/%m/%Y\n", tm);
+                printf("Thoi gian: %s\n", tmp);
+            }
+            else if (strcmp(format, "[mm/dd/yyyy]") == 0)
+            {
+                printf("Dinh dang: %s\n", format);
+                strftime(tmp, sizeof(tmp), "%m/%d/%Y\n", tm);
+                printf("Thoi gian: %s\n", tmp);
+            }
+            else if (strcmp(format, "[dd/mm/yy]") == 0)
+            {
+                printf("Dinh dang: %s\n", format);
+                strftime(tmp, sizeof(tmp), "%d/%m/%y\n", tm);
+                printf("Thoi gian: %s\n", tmp);
+            }
+            else
+            {
+                printf("Dinh dang: %s\n", format);
+                strftime(tmp, sizeof(tmp), "%x\n", tm);
+                printf("Thoi gian: %s\n", tmp);
+            }
+            send(client, tmp, strlen(tmp), 0);
+        }
     }
     else
     {
