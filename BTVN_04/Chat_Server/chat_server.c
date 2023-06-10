@@ -49,7 +49,7 @@ int main()
         if (client == -1)
         {
             perror("accept() failed.\n");
-            return 1;
+            continue;
         }
         printf("New client connected: %d\n", client);
 
